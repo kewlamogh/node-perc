@@ -28,6 +28,9 @@ class NodePerc {
                 a = this.crypt.decrypt(this.#parse(o[1]));
             }
         }
+        if (this.throwErrorOnGetNull && this.nullFilter(a)) {
+            throw new Error("Value of key is null. To not throw errors on getting null, just change the constructor variable throwErrorOnGetNull to false.");
+        }
         handler(a);
       });
     }
@@ -47,11 +50,15 @@ class NodePerc {
             handler(res);
         });
     }
+    nullFilter(item) {
+        return isNullOrUndefined(item);          
+    }
     del(key) {
         this.set(key, null);
     }
     #parse(dict) {
         let bai = new BoolAndInt();
+
         try {
             return JSON.parse(dict);
         } catch(e) {
@@ -64,8 +71,10 @@ class NodePerc {
             return dict;
         }
     }
-    constructor (fileName) {
-        this.fileName = fileName;
+    constructor (config = {fileName: "db.txt"}) {
+        this.fileName = "databases/"+config.fileName;
+        this.throwErrorOnGetNull = config.throwErrorOnGetNull || false;
+        require("child_process").exec("mkdir databases", () => {});        
         this.#initFile();
     }
 }
